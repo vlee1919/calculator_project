@@ -7,6 +7,7 @@ class Operation(ABC):
     def execute(self, a: float, b: float) -> float:
         pass
 
+"""Classes for each calculator operation."""
 
 class Addition(Operation):
     def execute(self, a: float, b: float) -> float:
@@ -43,7 +44,8 @@ class Modulo(Operation):
             raise ValueError("Modulo by zero is not allowed.")
         return a % b
 
-# The Operation factory class
+"""The Operation factory class"""
+
 class OperationFactory:
     """Instantiates and returns the correct
       operation object based on user input."""
@@ -57,7 +59,8 @@ class OperationFactory:
             "root": Root(),
             "modulo": Modulo()
         }
-    # Retrieves the requested operation object.
+
+    """ Retrieves the requested operation object."""
     def get_operation(self, user_input: str) -> Operation:
         if user_input not in self.operations:
             raise ValueError(f"Unknown operation: '{user_input}'")

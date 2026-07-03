@@ -9,20 +9,24 @@ def calculator_repl():
     print("Format: <operation> <number1> <number2>")
     print("Please enter a mathematical operation or type 'help' to see available commands.")
     print("Enter 'exit' to quit the calculator.")
-    
     print("Type 'exit' to quit.\n")
     
     factory = OperationFactory()
     
+    
     while True:
+
+
         try:
-            # 1. Read
+            # User Input
             user_input = input("Your input> ").strip().lower()
             
+            # Exit command
             if user_input == "exit":
                 print("Exiting calculator. Goodbye!")
                 break
-
+            
+            # Help Command
             if user_input == "help":
                 print("Available Operations: add, subtract, multiply, divide, power, root, modulo")
                 print("Type 'history' to view the history of calculations.")
@@ -45,11 +49,10 @@ def calculator_repl():
             a = float(str_a)
             b = float(str_b)
             
-            # 2. Evaluate
+            # Retrieve the operation 
             operation = factory.get_operation(operator_cmd)
             result = operation.execute(a, b)
             
-            # 3. Print
             # Formatting the result to remove trailing zeros if it's a whole number
             if result.is_integer():
                 print(f"Result: {int(result)}")
