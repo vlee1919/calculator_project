@@ -44,6 +44,14 @@ class Modulo(Operation):
             raise ValueError("Modulo by zero is not allowed.")
         return a % b
 
+class Percentage(Operation):
+    def execute(self, a: float, b: float) -> float:
+        return (a * b) / 100
+
+class Absolute_diff(Operation):
+    def execute(self, a: float, b: float) -> float:
+        return abs(a - b)
+
 """The Operation factory class"""
 
 class OperationFactory:
@@ -57,7 +65,9 @@ class OperationFactory:
             "divide": Division(),
             "power": Power(),
             "root": Root(),
-            "modulo": Modulo()
+            "modulo": Modulo(),
+            "percentage": Percentage(),
+            "absolute_difference": Absolute_diff()
         }
 
     """ Retrieves the requested operation object."""

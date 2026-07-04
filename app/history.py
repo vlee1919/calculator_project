@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 from pathlib import Path 
 
+
 """Observer base class and implementation for logging calculator operations to a CSV file."""
 class Observer(ABC):
     @abstractmethod
@@ -10,7 +11,7 @@ class Observer(ABC):
         """Receive update from subject."""
         pass
 
-class HistoryLogger(Observer):
+class AutoSaveObserver(Observer):
     def __init__(self, filename="history.csv"):
         # Get the absolute path to the directory where this file exists
         current_dir = Path(__file__).parent

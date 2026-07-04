@@ -7,7 +7,10 @@ from app.operations import (OperationFactory,
                             Division, 
                             Power, 
                             Root, 
-                            Modulo)
+                            Modulo,
+                            IntegerDivision, 
+                            Percentage, 
+                            Absolute_diff)
 
 
 
@@ -70,6 +73,14 @@ class Test_root(BaseOperationTest):
         with pytest.raises(ValueError, match="Zero root is undefined."):
             self.user_operation().execute(16, 0)
 
+class Test_power(BaseOperationTest):
+    user_operation = Power
+    
+    user_inputs = [
+        (2, 3, 8),  
+        (5, 0, 1),  
+        ]
+
 class Test_modulo(BaseOperationTest):
     user_operation = Modulo
     
@@ -81,3 +92,32 @@ class Test_modulo(BaseOperationTest):
     def test_modulo_by_zero(self):
         with pytest.raises(ValueError, match="Modulo by zero is not allowed."):
             self.user_operation().execute(10, 0)
+
+class Test_integer_division(BaseOperationTest):
+    user_operation = IntegerDivision
+    
+    user_inputs = [
+        (10, 3, 3),  
+        (10, 5, 2),  
+        ]
+    """ Test for integer division-by-zero error"""
+    def test_integer_division_by_zero(self):
+        with pytest.raises(ValueError, match="Integer division by zero is not allowed."):
+            self.user_operation().execute(10, 0)
+
+class Test_percentage(BaseOperationTest):
+    user_operation = Percentage
+    
+    user_inputs = [
+        (200, 10, 20),  
+        (150, 20, 30),  
+        ]
+
+class Test_absolute_diff(BaseOperationTest):
+    user_operation = Absolute_diff
+    
+    user_inputs = [
+        (5, 3, 2),  
+        (3, 5, 2),  
+        (10, 10, 0),  
+        ]

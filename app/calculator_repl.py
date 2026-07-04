@@ -3,7 +3,8 @@ Calculator REPL
 """
  
 from app.operations import OperationFactory
-from app.logger import EventManager, HistoryLogger
+from app.history import EventManager, AutoSaveObserver
+from app.calculator import Calculator
 
 
 class calculatorapp:
@@ -13,7 +14,7 @@ class calculatorapp:
         self.event_manager = EventManager()
         
         # Setup the Logger and attach it
-        self.logger = HistoryLogger("my_calculations.csv")
+        self.logger = AutoSaveObserver("history.csv")
         self.event_manager.attach(self.logger)
         
         # Setup the Operation Factory
@@ -28,6 +29,9 @@ class calculatorapp:
         
         while True:
             try:
+                # Initialize the Calculator
+                calculator = Calculator()
+
                 # User Input
                 user_input = input("Your input> ").strip().lower()
                 
@@ -38,7 +42,7 @@ class calculatorapp:
                 
                 # Help Command
                 if user_input == "help":
-                    print("Available Operations: add, subtract, multiply, divide, power, root, modulo")
+                    print("Available Operations: add, subtract, multiply, divide, power, root, modulo, int_divide, percent, abs_diff")
                     print("Type 'history' to view the history of calculations.")
                     print("Type 'clear' to clear the history.")
                     print("Type 'undo' to undo the last operation.")
@@ -47,28 +51,56 @@ class calculatorapp:
                     print("Type 'exit' to quit the calculator.")
                     continue
                 
+                # History Command
+                if user_input == "history":
+                    if self.logger.df.empty:
+                        print("No history available.")
+                    else:
+                        print(self.logger.df)
+                    continue
+
+                # Clear History Command
+                if user_input == "clear":
+                    self.logger.df = self.logger.df.iloc[0:0]  # Clear the DataFrame
+                    self.logger.df.to_csv(self.logger.filepath, index=False)  # Save the cleared DataFrame
+                    print("History cleared.")
+                    continue
+                
+                if user_input == "undo":
+                    calculator.undo()
+                    print("Operation has been undone.")
+                    continue
+
+                if user_input == "redo":
+                    calculator.redo()
+                    print("Operation has been redone.")
+                    continue
+                    
                 # Splits the user input into parts and checks if it has exactly three components
                 input_split = user_input.split()
                 if len(input_split) != 3:
                     print("Error: Invalid input format. Please use: <operation> <number1> <number2>")
                     continue
-                    
+                
+                # Assign the split input to variables
                 operator_cmd, str_a, str_b = input_split
                 
                 # Convert string inputs to floats
                 a = float(str_a)
                 b = float(str_b)
                 
-                # Retrieve the operation 
-                operation = self.factory.get_operation(operator_cmd)
-                result = operation.execute(a, b)
-                
+
+                # Perform the operation using the Calculator class
+                result = calculator.start_operation(operator_cmd, a, b)
+
+
                 # Formatting the result to remove trailing zeros if it's a whole number
                 if result.is_integer():
                     print(f"Result: {int(result)}")
                 else:
                     print(f"Result: {result}")
                 
+                """Logger"""
                 # Notify the logger about the operation
                 if self.event_manager:
                     self.event_manager.notify({
