@@ -39,12 +39,13 @@ def calculator_repl():
             
             # # Show History 
             if user_input == "history":
-                if calculator.history:
-                    print("Calculation History:")
+                history = calculator.get_history()
+                if not history:
+                    print("No history available.")
+                else:
+                    print("\nCalculation History:")
                     for entry in calculator.history:
                         print(f"{entry['Timestamp']}: {entry['Operation']} {entry['Input']} = {entry['Result']}")
-                else:
-                    print("No history available.")
                 continue
             
             if user_input == "undo":
