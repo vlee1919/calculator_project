@@ -2,59 +2,62 @@
 import copy
 from datetime import datetime
 from app.operations import OperationFactory
-from app.calculator_memento import CalcMemento
+from app.calculator_memento import EventManager, MementoManager, HistoryManager
 
 
 class Calculator:
     
     def __init__(self):
+        self.history = []  # To store the history of operations
+        self.memento_manager = MementoManager() # To manage the mementos for undo/redo functionality
+        self.event_manager = EventManager() # To manage event notifications
+        
 
-        self.result = 0
-        self.history = []
-
-    def save_state(self):
-        """Save the current state of the calculator."""
-        state = {
-            'result': self.result,
-            'timestamp': datetime.datetime.now()
-        }
-        self.history.append(copy.deepcopy(state))
-
-    def restore_state(self, index):
-        """Restore the calculator to a previous state."""
-        if 0 <= index < len(self.history):
-            state = self.history[index]
-            self.result = state['result']
-            return True
-        return False
-    
+    def execute_operation(self, operator_cmd: str, a: float, b: float) -> float:
+        """Executes the operation and manages history and mementos."""
+        operation = OperationFactory().get_operation(operator_cmd)
+        result = operation.execute(a, b)
+        
+        # Save the current state to memento before executing the operation
+        self.memento_manager.backup(self.history.copy())
+        
+        # Update history
+        self.history.append({
+            "Operation": operator_cmd,
+            "Input": f"{a}, {b}",
+            "Result": result,
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+        
+        # Notify the event manager about the operation
+        self.event_manager.notify({
+            "Operation": operator_cmd,
+            "Input": f"{a}, {b}",
+            "Result": result
+        })
+        return result
 
     """Start the operation based on user input."""
-    def start_operation(self, operator_cmd: str, a: float, b: float) -> float:
-        """Start the operation based on user input."""
-        operation = OperationFactory().get_operation(operator_cmd)
-        self.result = operation.execute(a, b)
-        return self.result
-    
-
-    def undo(self, memento: CalcMemento):
-        """Undo the last operation."""
-        if memento.undo():
-            print("Undo successful.")
-        else:
-            print("No operations to undo.")
-    
-    def redo(self, memento: CalcMemento):
-        """Redo the last undone operation."""
-        if memento.redo():
-            print("Redo successful.")
-        else:
-            print("No operations to redo.")
+    # def start_operation(self, operator_cmd: str, a: float, b: float) -> float:
+    #     """Start the operation based on user input."""
+    #     operation = OperationFactory().get_operation(operator_cmd)
+    #     self.result = operation.execute(a, b)
+    #     return self.result
     
     def get_history(self):
-        """Return the history of operations."""
         return self.history
-    
+
+    def save_history(self, filename="history.csv"):
+        history_manager = HistoryManager(filename)
+        for entry in self.history:
+            history_manager.update(entry)
+
+    def undo(self):
+        self.history = self.memento_manager.undo()
+
+    def redo(self):
+        self.history = self.memento_manager.redo()
+
     def clear_history(self):
-        """Clear the history of operations."""
+        self.memento_manager.backup(self.history)
         self.history.clear()
