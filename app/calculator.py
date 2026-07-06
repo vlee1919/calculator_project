@@ -5,6 +5,7 @@ from app.operations import OperationFactory
 from app.calculator_memento import EventManager, MementoManager, HistoryManager
 import os
 from pathlib import Path
+import pandas as pd
 
 class Calculator:
     
@@ -19,7 +20,13 @@ class Calculator:
 
         self.event_manager.attach(self.history_manager)
 
+        # Load previous history from CSV
+        self.load_history()
 
+    def load_history(self):
+
+        if not self.history_manager.df.empty:
+            self.history = self.history_manager.df.to_dict(orient="records")
 
     def execute_operation(self, operator_cmd: str, a: float, b: float) -> float:
         """Executes the operation and manages history and mementos."""
@@ -37,13 +44,18 @@ class Calculator:
                     "Input": f"{a}, {b}",
                     "Result": result
                 }
+        
+        # Save to history list
         self.history.append(calculation_record)
+
+        # Notify observer --> HistoryManager will save to CSV
         self.event_manager.notify(calculation_record)
+
+        self.history_manager.save()
 
         return result
 
-            
-
+        
     def get_history(self):
         return self.history
 
@@ -53,11 +65,41 @@ class Calculator:
             history_manager.update(entry)
 
     def undo(self):
-        self.history = self.memento_manager.undo()
+        previous_state = self.memento_manager.undo(self.history)
+
+        if previous_state is not None:
+            self.history = previous_state
+
+            self.history_manager.df = pd.DataFrame(self.history)
+            self.history_manager.save() # Saves to CSV
+
+            return True
+        
+        return False
 
     def redo(self):
-        self.history = self.memento_manager.redo()
+        restored_state = self.memento_manager.redo(self.history)
 
+        if restored_state is not None:
+            self.history = restored_state
+
+            self.history_manager.df = pd.DataFrame(self.history)
+            self.history_manager.save() # Save to CSV
+
+            return True
+        
+        return False
+
+    
+    # Clear History
     def clear_history(self):
         self.memento_manager.backup(self.history)
+
+        # Clear Calculation history
         self.history.clear()
+
+        # Clear the dataframe
+        self.history_manager.df = self.history_manager.df.iloc[0:0]
+
+        # Save empty history to CSV
+        self.history_manager.save()

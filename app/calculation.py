@@ -1,5 +1,5 @@
 
 
-import logging
 
-class 
+class Calculation:
+    """Object of the calculation."""

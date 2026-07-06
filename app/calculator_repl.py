@@ -12,12 +12,12 @@ def calculator_repl():
     print("Format: <operation> <number1> <number2>")
     print("Please enter a mathematical operation or type 'help' to see available commands.")
     print("Enter 'exit' to quit the calculator.")
-    print("Type 'exit' to quit.\n")
+
+    # Initialize the Calculator
+    calculator = Calculator()
+    
     while True:
         try:
-            # Initialize the Calculator
-            calculator = Calculator()
-
             # User Input
             user_input = input("Your input> ").strip().lower()
             
@@ -34,28 +34,34 @@ def calculator_repl():
                 print("Type 'undo' to undo the last operation.")
                 print("Type 'redo' to redo the last undone operation.")
                 print("Type 'help' to see this message again.")
-                print("Type 'exit' to quit the calculator.")
+                print("Type 'exit' to quit the calculator.\n")
                 continue
             
-            # # Show History 
+            # Show History 
             if user_input == "history":
                 history = calculator.get_history()
                 if not history:
                     print("No history available.")
                 else:
                     print("\nCalculation History:")
-                    for entry in calculator.history:
+                    for entry in history:
                         print(f"{entry['Timestamp']}: {entry['Operation']} {entry['Input']} = {entry['Result']}")
                 continue
             
+            # Undo
             if user_input == "undo":
-                calculator.undo()
-                print("Last operation undone.")
+                if calculator.undo():
+                    print("Last operation undone.")
+                else:
+                    print("Nothing to undo.")
                 continue
-
+            
+            # Redo
             if user_input == "redo":
-                calculator.redo()
-                print("Last undone operation redone.")
+                if calculator.redo():
+                    print("Last undone operation redone.")
+                else:
+                    print("Nothing to redo.")
                 continue
 
             if user_input == "clear":
@@ -76,7 +82,6 @@ def calculator_repl():
             # Convert string inputs to floats
             a = float(str_a)
             b = float(str_b)
-            
 
             # Perform the operation using the Calculator class
             result = calculator.execute_operation(operator_cmd, a, b)
