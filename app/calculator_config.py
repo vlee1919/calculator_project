@@ -60,20 +60,11 @@ class CalculatorConfig:
 
 
     @property
-    def log_dir(self):
+    def log_directory(self):
         # Log director path
         return Path(os.getenv(
             'CALCULATOR_LOG_DIR',
-            str(self.base_dir / "logs")
-        )).resolve()
-    
-
-    @property
-    def history_file(self):
-        # History file path 
-        return Path(os.getenv(
-            'CALCULATOR_HISTORY_FILE',
-            str(self.history_dir / "calculator_history.csv")
+            str(self.base_directory / "logs")
         )).resolve()
 
     @property
@@ -81,5 +72,21 @@ class CalculatorConfig:
         # File path for storing log 
         return Path(os.getenv(
             'CALCULATOR_LOG_FILE',
-            str(self.log_dir / "calculator.log")
+            str(self.log_directory / "calculator.log")
         )).resolve()    
+    
+    @property
+    def history_directory(self):
+        return Path(os.getenv(
+            'CALCULATOR_HISTORY_DIRECTORY',
+            str(self.base_directory / "history")
+        )).resolve()
+
+    @property
+    def history_file(self):
+        # History file path 
+        return Path(os.getenv(
+            'CALCULATOR_HISTORY_FILE',
+            str(self.history_directory/ "calculator_history.csv")
+        )).resolve()
+    

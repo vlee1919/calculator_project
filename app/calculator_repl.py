@@ -11,12 +11,14 @@ def calculator_repl():
     print("Calculator REPL")
     print("Format: <operation> <number1> <number2>")
     print("Please enter a mathematical operation or type 'help' to see available commands.")
-    print("Enter 'exit' to quit the calculator.")
-    print("Type 'exit' to quit.\n")
+    print("Enter 'exit' to quit the calculator.\n")
+
+    # Initialize the Calculator
+    calculator = Calculator()
+
     while True:
         try:
-            # Initialize the Calculator
-            calculator = Calculator()
+            
 
             # User Input
             user_input = input("Your input> ").strip().lower()
@@ -44,18 +46,22 @@ def calculator_repl():
                     print("No history available.")
                 else:
                     print("\nCalculation History:")
-                    for entry in calculator.history:
+                    for entry in history:
                         print(f"{entry['Timestamp']}: {entry['Operation']} {entry['Input']} = {entry['Result']}")
                 continue
             
             if user_input == "undo":
-                calculator.undo()
-                print("Last operation undone.")
+                if calculator.undo():
+                    print("Last operation undone.")
+                else:
+                    print("Nothing to undo.")
                 continue
 
             if user_input == "redo":
-                calculator.redo()
-                print("Last undone operation redone.")
+                if calculator.redo():
+                    print("Last undone operation redone.")
+                else:
+                    print("Nothing to redo.")
                 continue
 
             if user_input == "clear":
