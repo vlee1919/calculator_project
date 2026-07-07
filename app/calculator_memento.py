@@ -2,6 +2,18 @@ import pandas as pd
 import datetime
 from pathlib import Path 
 import copy
+from app.calculator_config import CalculatorConfig
+import os
+from pandas.errors import EmptyDataError
+import logging
+from abc import ABC, abstractmethod
+
+class Observer(ABC):
+
+    @abstractmethod
+    def update(self, data: dict):
+        pass
+
 
 class EventManager:
     # Initialize an empty list of subscribers
@@ -18,20 +30,30 @@ class EventManager:
             subscriber.update(data)
 
 """The "Caretaker" class that manages the memento objects for undo and redo functionality."""
-class HistoryManager:
-    def __init__(self, filename="history.csv"):
-            
-        history_dir = Path(__file__).parent / "history"
-        history_dir.mkdir(exist_ok=True)
+class HistoryManager(Observer):
+    def __init__(self, config: CalculatorConfig):
+        self.config = config
+        self.filepath = config.history_file
 
-        self.filepath = history_dir / filename
-
+        # Check if history directory exist
+        os.makedirs(self.config.history_directory, exist_ok=True)
+        
         self.df = pd.DataFrame(columns=["Timestamp", 
-                                        "Operation", 
-                                        "Input", 
-                                        "Result"])
-        if self.filepath.exists():
-            self.df = pd.read_csv(self.filepath)
+                                         "Operation", 
+                                         "Input", 
+                                         "Result"])
+
+
+        if self.filepath.exists() and self.filepath.stat().st_size > 0: # Check if the file is not 0 bytes
+            try:
+                self.df = pd.read_csv(
+                    self.filepath,
+                    encoding=self.config.default_encoding
+                )
+            except EmptyDataError:
+                pass
+        else:
+            self.save() # If the file is empty, it will call save which creates the csv with the timestamps
     
     # Update the history with new calculation entry. Save to a dataframe.
     def update(self, data: dict):
@@ -41,8 +63,16 @@ class HistoryManager:
     
     # Save to CSV
     def save(self):    
-        self.df.to_csv(self.filepath, index=False)
-        print(f"Saved calculation to {self.filepath}")
+        self.df.to_csv(self.filepath, 
+                       index=False, 
+                       encoding=self.config.default_encoding)
+        print(f"History saved to {self.filepath}")
+    
+
+    def load_history(self):
+        if self.df.empty:
+            return []
+        return self.df.to_dict(orient="records")
 
 class Memento:
     # Object with a copy of the calculator's state.
@@ -54,34 +84,48 @@ class MementoManager:
         self.undo_stack = []
         self.redo_stack = []
 
-    # Back up to the 
+    # Back up state to undo stack
     def backup(self, state):
-        print("Backing up:", state)
         # Add to the undo stack and clear the redo stack when a new operation is performed.
         self.undo_stack.append(Memento(state))
         self.redo_stack.clear()
 
-
-    # Undo 
+    # Undo function
     def undo(self, current_state):
         if self.undo_stack:
             previous = self.undo_stack.pop()
 
             # send to redo stack
             self.redo_stack.append(Memento(current_state))
-
             return previous.state
-
         return None
 
-    # Redo 
+    # Redo function
     def redo(self, current_state):
         if self.redo_stack:
             restored = self.redo_stack.pop()
-
+            
             # send to undo stack
             self.undo_stack.append(Memento(current_state))
-
             return restored.state
-
         return None
+
+
+class AutoSaveObserver(Observer):
+
+    def __init__(self, history_manager: HistoryManager):
+        self.history_manager = history_manager
+
+    def update(self, data: dict):
+        self.history_manager.save()
+
+
+class LoggingObserver(Observer):
+
+    def update(self, data: dict):
+
+        logging.info(
+            f"{data['Operation']} | "
+            f"{data['Input']} = "
+            f"{data['Result']}"
+        )

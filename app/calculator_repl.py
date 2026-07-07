@@ -5,7 +5,7 @@ import logging
 from app.operations import OperationFactory
 from app.calculator import Calculator
 from app. calculator_memento import EventManager, HistoryManager, MementoManager
-
+from app.exceptions import OperationError, ValidationError
 
 def calculator_repl():
     print("Calculator REPL")
@@ -19,7 +19,6 @@ def calculator_repl():
     while True:
         try:
             
-
             # User Input
             user_input = input("Your input> ").strip().lower()
             
@@ -50,49 +49,80 @@ def calculator_repl():
                         print(f"{entry['Timestamp']}: {entry['Operation']} {entry['Input']} = {entry['Result']}")
                 continue
             
+            # Undo 
             if user_input == "undo":
                 if calculator.undo():
                     print("Last operation undone.")
                 else:
                     print("Nothing to undo.")
                 continue
-
+            
+            # Redo
             if user_input == "redo":
                 if calculator.redo():
                     print("Last undone operation redone.")
                 else:
                     print("Nothing to redo.")
                 continue
-
+            
+            # Clear History
             if user_input == "clear":
                 calculator.clear_history()
                 print("History cleared.")
                 continue
-
-         
-            # Splits the user input into parts and checks if it has exactly three components
-            input_split = user_input.split()
-            if len(input_split) != 3:
-                print("Error: Invalid input format. Please use: <operation> <number1> <number2> or type 'help' for available commands.")
+            
+            # Manually save to history
+            if user_input == "save":
+                calculator.save_history()
+                print("History saved.")
                 continue
             
-            # Assign the split input to variables
-            operator_cmd, str_a, str_b = input_split
-
-            # Convert string inputs to floats
-            a = float(str_a)
-            b = float(str_b)
+            # Manually load from history
+            if user_input == "load":
+                calculator.load_history()
+                print("History loaded.")
+                continue
             
+            if user_input in ["add",
+                              "subtract",
+                              "multiply",
+                              "divide",
+                              "power",
+                              "root",
+                              "modulus",
+                              "int_divide",
+                              "percent",
+                              "abs_diff"
+                            ]:
+                try:
 
-            # Perform the operation using the Calculator class
-            result = calculator.execute_operation(operator_cmd, a, b)
+                    # Get the first and second operand
+                    a = float(input("Type the first operand: "))
+                    b = float(input("Type the second operand: "))
+            
+                    operator_cmd = user_input
 
-            # Formatting the result to remove trailing zeros if it's a whole number
-            if result.is_integer():
-                print(f"Result: {int(result)}")
-            else:
-                print(f"Result: {result}")
-        
+                    # Perform the operation using the Calculator class
+                    result = calculator.execute_operation(operator_cmd, a, b)
+
+                    # Formatting the result to remove trailing zeros if it's a whole number
+                    if result.is_integer():
+                        print(f"Result: {int(result)}")
+                    else:
+                        print(f"Result: {result}")
+                
+                except KeyboardInterrupt:
+                    # Handle Ctrl+C interruption gracefully
+                    print("\nOperation cancelled")
+                    continue
+                except EOFError:
+                    # Handle end-of-file (e.g., Ctrl+D) gracefully
+                    print("\nInput terminated. Exiting...")
+                    break
+
+                except Exception as e:
+                    print(f"Error: {e}")
+                    continue
 
         except ValueError as e:
             # Catch errors like typing a letter instead of a number, dividing by zero, or bad commands

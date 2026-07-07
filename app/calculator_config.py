@@ -1,5 +1,6 @@
 """Calculator Configuration"""
 
+from dataclasses import dataclass
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ def get_project_root():
     # app --> calc_project
     return current_directory.parent.parent
 
+@dataclass
 class CalculatorConfig:
 
     def __init__(self, 
