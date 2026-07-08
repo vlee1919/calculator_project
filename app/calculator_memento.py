@@ -67,18 +67,37 @@ class HistoryManager(Observer):
         print(f"History saved to {self.filepath}") 
     
     # Load history from CSV to Dict
+    # def load_history(self):
+    #     if self.filepath.exists() and self.filepath.stat().st_size > 0:
+    #         self.df = pd.read_csv(
+    #             self.filepath,
+    #             encoding=self.config.default_encoding
+    #             )
+    #     else:
+    #         self.df = pd.DataFrame(
+    #             columns=["Timestamp", "Operation", "Input", "Result"]
+    #             )
+    #     return self.df.to_dict(orient="records")
+
     def load_history(self):
-        if self.filepath.exists() and self.filepath.stat().st_size > 0:
-            self.df = pd.read_csv(
-                self.filepath,
-                encoding=self.config.default_encoding
+        if self.filepath.exists():
+            try:
+                self.df = pd.read_csv(
+                    self.filepath,
+                    encoding=self.config.default_encoding
                 )
+            except EmptyDataError:
+                self.df = pd.DataFrame(
+                    columns=["Timestamp", "Operation", "Input", "Result"]
+                )
+                self.save()
         else:
             self.df = pd.DataFrame(
                 columns=["Timestamp", "Operation", "Input", "Result"]
-                )
-        return self.df.to_dict(orient="records")
+            )
+            self.save()
 
+        return self.df.to_dict(orient="records")
 
 class Memento:
     # Object with a copy of the calculator's state.
