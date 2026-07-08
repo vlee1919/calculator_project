@@ -90,7 +90,7 @@ def calculator_repl():
                                 "divide",
                                 "power",
                                 "root",
-                                "modulus",
+                                "modulo",
                                 "int_divide",
                                 "percent",
                                 "abs_diff"
