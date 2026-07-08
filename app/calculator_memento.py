@@ -9,11 +9,10 @@ import logging
 from abc import ABC, abstractmethod
 
 class Observer(ABC):
-
+# Abstract class for Observer
     @abstractmethod
     def update(self, data: dict):
         pass
-
 
 class EventManager:
     # Initialize an empty list of subscribers
@@ -43,7 +42,6 @@ class HistoryManager(Observer):
                                          "Input", 
                                          "Result"])
 
-
         if self.filepath.exists() and self.filepath.stat().st_size > 0: # Check if the file is not 0 bytes
             try:
                 self.df = pd.read_csv(
@@ -61,18 +59,26 @@ class HistoryManager(Observer):
         new_row = pd.DataFrame([data]) # Convert dictionary to dataframe
         self.df = pd.concat([self.df, new_row], ignore_index=True) # Add to current existing history & renumber index rows
     
-    # Save to CSV
+    # Save to CSV from Dict
     def save(self):    
         self.df.to_csv(self.filepath, 
                        index=False, 
-                       encoding=self.config.default_encoding)
-        print(f"History saved to {self.filepath}")
+                       encoding=self.config.default_encoding) # Serialize data
+        print(f"History saved to {self.filepath}") 
     
-
+    # Load history from CSV to Dict
     def load_history(self):
-        if self.df.empty:
-            return []
+        if self.filepath.exists() and self.filepath.stat().st_size > 0:
+            self.df = pd.read_csv(
+                self.filepath,
+                encoding=self.config.default_encoding
+                )
+        else:
+            self.df = pd.DataFrame(
+                columns=["Timestamp", "Operation", "Input", "Result"]
+                )
         return self.df.to_dict(orient="records")
+
 
 class Memento:
     # Object with a copy of the calculator's state.
@@ -110,20 +116,16 @@ class MementoManager:
             return restored.state
         return None
 
-
+# Automatically save when calculation is performed
 class AutoSaveObserver(Observer):
-
     def __init__(self, history_manager: HistoryManager):
         self.history_manager = history_manager
-
     def update(self, data: dict):
         self.history_manager.save()
 
-
+# Log the operation, input and result
 class LoggingObserver(Observer):
-
     def update(self, data: dict):
-
         logging.info(
             f"{data['Operation']} | "
             f"{data['Input']} = "

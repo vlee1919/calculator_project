@@ -10,7 +10,6 @@ import pandas as pd
 from typing import Optional
 
 class Calculator:
-    
     def __init__(self, config: Optional[CalculatorConfig] = None):
 
         if config is None:
@@ -20,17 +19,14 @@ class Calculator:
     
         self.memento_manager = MementoManager() # To manage the mementos for undo/redo functionality
         self.event_manager = EventManager() # To manage event notifications
-        # self.history_manager = HistoryManager(history_file=self.config.history_file)
-        self.history_manager = HistoryManager(self.config)
+        self.history_manager = HistoryManager(self.config) 
 
-        # Attach the observer
-        # self.event_manager.attach(self.history_manager)
 
         # Create observers
         autosave = AutoSaveObserver(self.history_manager)
         logger = LoggingObserver()
 
-        # Register observers
+        # Attach observers to this calculation session
         self.event_manager.attach(self.history_manager)
         self.event_manager.attach(autosave)
         self.event_manager.attach(logger)
@@ -43,7 +39,7 @@ class Calculator:
         # Log: Successfully inititalize calculator
         logging.info("Succesfuly initialize Calculator")
 
-        # self.history = []  # To store the history of operations
+        # load history from CSV
         self.history = self.history_manager.load_history()
 
 
@@ -81,7 +77,8 @@ class Calculator:
             result = operation.execute(a, b)
         except Exception as e:
             logging.error(f"Calculation failed: {e}")
-
+            raise
+        
         calculation_record = {
                     "Operation": operator_cmd,
                     "Input": f"{a}, {b}",
@@ -93,19 +90,12 @@ class Calculator:
         # Notify observer
         self.event_manager.notify(calculation_record)
 
-        # self.history_manager.save() #  Save to CSV
         return result
 
             
     # Retrieve history in current session
     def get_history(self):
         return self.history
-
-    # Save history to file
-    def save_history(self, filename="history.csv"):
-        history_manager = HistoryManager(filename)
-        for entry in self.history:
-            history_manager.update(entry)
 
     # Undo --> call undo function from calculator_memento
     def undo(self):
