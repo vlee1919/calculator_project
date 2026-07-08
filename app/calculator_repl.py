@@ -6,12 +6,14 @@ from app.operations import OperationFactory
 from app.calculator import Calculator
 from app. calculator_memento import EventManager, HistoryManager, MementoManager
 from app.input_validators import InputValidator
+from colorama import init, Fore, Back, Style
+init(autoreset=True)
 
 def calculator_repl():
-    print("Calculator REPL")
-    print("Format: <operation> <number1> <number2>")
-    print("Please enter a mathematical operation or type 'help' to see available commands.")
-    print("Enter 'exit' to quit the calculator.\n")
+    print(Fore.CYAN + Style.BRIGHT + "===== Calculator REPL =====")
+    print(Fore.YELLOW +"Format: <operation> <number1> <number2>")
+    print(Fore.GREEN +"Please enter a mathematical operation or type 'help' to see available commands.")
+    print(Fore.RED +"Enter 'exit' to quit the calculator.\n")
 
     # Initialize the Calculator
     calculator = Calculator()
@@ -19,16 +21,16 @@ def calculator_repl():
         while True:
             try:
                 # User Input
-                user_input = input("Your input> ").strip().lower()
+                user_input = input(Fore.CYAN +"Your input> ").strip().lower()
                 
                 # Exit command
                 if user_input == "exit":
-                    print("Exiting calculator. Goodbye!")
+                    print(Fore.CYAN +"Exiting calculator. Goodbye!")
                     break
                 
                 # Help Command
                 if user_input == "help":
-                    print("Available Operations: add, subtract, multiply, divide, power, root, modulo, int_divide, percent, abs_diff")
+                    print(Fore.MAGENTA + Style.BRIGHT +"Available Operations: add, subtract, multiply, divide, power, root, modulo, int_divide, percent, abs_diff")
                     print("Type 'history' to view the history of calculations.")
                     print("Type 'clear' to clear the history.")
                     print("Type 'undo' to undo the last operation.")
@@ -45,7 +47,7 @@ def calculator_repl():
                     if not history:
                         print("No history available.")
                     else:
-                        print("\nCalculation History:")
+                        print(Fore.CYAN + Style.BRIGHT +"\nCalculation History:")
                         for entry in history:
                             print(f"{entry['Timestamp']}: {entry['Operation']} {entry['Input']} = {entry['Result']}")
                     continue
@@ -53,35 +55,35 @@ def calculator_repl():
                 # Undo 
                 if user_input == "undo":
                     if calculator.undo():
-                        print("Last operation undone.")
+                        print(Fore.GREEN +"Last operation undone.")
                     else:
-                        print("Nothing to undo.")
+                        print(Fore.YELLOW +"Nothing to undo.")
                     continue
                 
                 # Redo
                 if user_input == "redo":
                     if calculator.redo():
-                        print("Last undone operation redone.")
+                        print(Fore.GREEN +"Last undone operation redone.")
                     else:
-                        print("Nothing to redo.")
+                        print(Fore.YELLOW +"Nothing to redo.")
                     continue
                 
                 # Clear History
                 if user_input == "clear":
                     calculator.clear_history()
-                    print("History cleared.")
+                    print(Fore.GREEN +"History cleared.")
                     continue
                 
                 # Manually save to history
                 if user_input == "save":
                     calculator.save_history()
-                    print("History saved.")
+                    print(Fore.GREEN +"History saved.")
                     continue
                 
                 # Manually load from history
                 if user_input == "load":
                     calculator.load_history()
-                    print("History loaded.")
+                    print(Fore.GREEN +"History loaded.")
                     continue
                 
                 if user_input in ["add",
@@ -111,23 +113,24 @@ def calculator_repl():
                         if result.is_integer():
                             print(f"Result: {int(result)}")
                         else:
-                            print(f"Result: {result}")
+                            print(Fore.GREEN + Style.BRIGHT + f"Result: {result}")
+
                     except ValueError as e:
                     # Catch errors like typing a letter instead of a number, dividing by zero, or bad commands
-                        print(f"Error: {e}")
+                        print(Fore.RED +f"Error: {e}")
                     continue
                 else:
-                    print(f"Invalid operation: '{user_input}'. Please try again.")
+                    print(Fore.RED +f"Invalid operation: '{user_input}'. Please try again.")
 
             except KeyboardInterrupt:
                 # Ctrl+C interruption 
-                print("\nOperation cancelled")
+                print(Fore.RED +"\nOperation cancelled")
                 continue
             except Exception as e:
-                print(f"Error: {e}")
+                print(Fore.RED +f"Error: {e}")
                 continue
 
     except Exception as e:
         logging.error(f"An unexpected error occurred in the Calculator REPL: {e}")
-        print(f"An unexpected error occurred: {e}")
+        print(Fore.RED +f"An unexpected error occurred: {e}")
 
